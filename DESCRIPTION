@@ -1,0 +1,33 @@
+Package: sesameData
+Type: Package
+Title: Supporting Data for SeSAMe Package
+Description: Provides supporting annotation and test data for SeSAMe package. This includes chip tango addresses, mapping information, performance annotation, and trained predictor for Infinium array data. This package provides user access to essential annotation data for working with many generations of the Infinium DNA methylation array. Current we support human array (HM27, HM450, EPIC), mouse array (MM285) and the HorvathMethylChip40 (Mammal40) array.
+Version: 1.21.9
+Authors@R: c(person("Wanding", "Zhou", role = c("aut","cre"),
+             email = "zhouwanding@gmail.com", comment = c(ORCID = "0000-0001-9126-1932")),
+             person("Hui", "Shen", role = c("aut"),
+             email = "Hui.Shen@vai.org"),
+             person("Timothy", "Triche", role = "ctb"))
+License: Artistic-2.0
+Depends: R (>= 4.2.0), ExperimentHub, AnnotationHub
+Imports:
+    utils,
+    readr,
+    stringr,
+    GenomicRanges,
+    S4Vectors,
+    IRanges,
+    GenomeInfoDb
+Suggests:
+    BiocGenerics,
+    sesame,
+    testthat,
+    knitr,
+    rmarkdown
+biocViews: ExperimentData, MicroarrayData, Genome, ExperimentHub, MethylationArrayData
+URL: https://github.com/zwdzwd/sesame
+BugReports: https://github.com/zwdzwd/sesame/issue
+VignetteBuilder: knitr
+NeedsCompilation: no
+RoxygenNote: 7.2.3
+Encoding: UTF-8

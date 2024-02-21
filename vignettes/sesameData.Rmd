@@ -1,0 +1,151 @@
+---
+title: "SeSAMe Data User Guide"
+shorttitle: "sesameData guide"
+package: sesameData
+output: rmarkdown::html_vignette
+fig_width: 6
+fig_height: 5
+vignette: >
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{sesameData User Guide}
+    %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+`sesameData` package provides associated data for sesame package. This includes
+example data for testing and instructional purpose, as we ll as probe annotation
+for different Infinium platforms.
+
+```{r, message=FALSE, warning=FALSE}
+library(sesameData)
+library(GenomicRanges)
+sesameDataCache(c("genomeInfo.mm10", "HM450.address"))
+```
+
+# Genome Information
+
+Sesame provides some utility functions to process transcript models, which can
+be represented as data.frame, GRanges and GRangesList objects. For example,
+`sesameData_getTxnGRanges` calls `sesameDataGet("genomeInfo.mm10")$txns` to
+retrieve a transcript-centric GRangesList object from GENCODE including its
+gene annotation, exon and cds (for protein-coding genes). It is then turned
+into a simple GRanges object of transcript:
+
+```{r}
+sesameData_getTxnGRanges("mm10")
+```
+
+The returned GRanges object does not contain the exon coordinates. We can
+further collapse different transcripts of the same gene (isoforms) to gene
+level. Gene start is the minimum of all isoform starts and end is the maximum
+of all isoform ends.
+
+```{r}
+sesameData_getTxnGRanges("mm10", merge2gene=TRUE)
+```
+
+# Probes
+
+
+```{r message = FALSE, warning = FALSE}
+library(GenomicRanges)
+```
+
+The following code get probes from different parts of the genome.
+```{r eval=FALSE}
+## probes in a region
+sesameData_getProbesByRegion(GRanges('chr5',
+    IRanges(135313937, 135419936)), platform = 'Mammal40')
+## get chrX probes
+sesameData_getProbesByRegion(chrm = 'chrX', platform = "Mammal40")
+## get autosomal probes
+sesameData_getProbesByRegion(
+    chrm_to_exclude = c("chrX", "chrY"), platform = "Mammal40")
+## get DNMT3A probes
+sesameData_getProbesByGene('DNMT3A', "Mammal40", upstream=500)
+## get DNMT3A promoter probes
+sesameData_getProbesByGene('DNMT3A', "Mammal40", promoter = TRUE)
+## get all promoter probes
+sesameData_getProbesByGene(NULL, "Mammal40", promoter = TRUE)
+```
+
+One can annotate given probe ID using any genomic features stored in GRanges
+objects. For example, the following demonstrate the annotation of 500 random
+Mammal40 probes for gene promoters.
+```{r eval=FALSE}
+input_probes <- names(sesameData_getManifestGRanges("Mammal40"))[1:500]
+
+## annotate for promoter
+regs <- promoters(sesameData_getTxnGRanges("hg38"))
+sesameData_annoProbes(input_probes, regs, column = "gene_name")
+
+## annotate for gene association
+regs <- sesameData_getTxnGRanges("hg38", merge2gene = TRUE)
+sesameData_annoProbes(input_probes, regs, column = "gene_name")
+
+## get genes associated with probes
+regs <- sesameData_getTxnGRanges("hg38", merge2gene = TRUE)
+sesameData_annoProbes(input_probes, regs, return_ov_features=TRUE)
+
+## get genes associated with probes extending 10kb
+input_probes <- c("cg14620903","cg22464003")
+sesameData_annoProbes(input_probes, regs+10000, column = "gene_name")
+```
+
+# Manifest
+
+Sesame provides access to array manfiest stored as GRanges object. These
+GRanges object are converted from the raw tsv files on our [array annotation
+website](http://zwdzwd.github.io/InfiniumAnnotation) using the [conversion
+code](https://tinyurl.com/8bt9dssc)
+
+```{r}
+gr <- sesameData_getManifestGRanges("HM450")
+length(gr)
+```
+
+Note that by default the GRanges object exclude decoy sequence probes (e.g.,
+_alt, and _random contigs). To include them, we need to use the `decoy = TRUE`
+option in sesameData_getManifestDF.
+
+# Raw Data Retrieval
+
+Titles of all the available data can be shown with:
+```{r}
+head(sesameDataList())
+```
+
+Each sesame datum from ExperimentHub is accessible through the `sesameDataGet`
+interface. It should be noted that all data must be pre-cached to local disk
+before they can be used.  This design is to prevent conflict in annotation data
+caching and remove internet dependency. Caching needs only be done once per
+sesame/sesameData installation. One can cache data using
+
+```{r}
+sesameDataCache()
+```
+
+Once a data object is loaded, it is stored to a tempoary cache, so that the data
+doesn't need to be retrieved again next time we call `sesameDataGet`. This
+design is meant to speeed up the run time.
+
+For example, the annotation for HM27 can be retrieved with the title: 
+```{r}
+HM27.address <- sesameDataGet('HM27.address')
+```
+
+It's worth noting that once a data is retrieved through the `sesameDataGet`
+inferface (below), it will stay in memory so next time the object will be
+returned immediately. This design avoids repeated disk/web retrieval. In some
+rare situation, one may want to redo the download/disk IO, or empty the cache
+to save memory. This can be done with:
+
+```{r}
+sesameDataGet_resetEnv()
+```
+
+
+```{r}
+sessionInfo()
+```
